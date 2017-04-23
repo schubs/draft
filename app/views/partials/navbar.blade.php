@@ -9,10 +9,10 @@
 	<section class="top-bar-section">
 		<ul class="left">
 <?php
-$navbar = [
-	['text' => trans('navigation.home'), 'url' => route('home'), 'active' => 'home'],
-	['text' => trans('navigation.league'), 'url' => route('league.index'), 'active' => 'league.*'],
-];
+	$navbar = [
+		['text' => trans('navigation.home'), 'url' => route('home'), 'active' => 'home'],
+		['text' => trans('navigation.league'), 'url' => route('league.index'), 'active' => 'league.*'],
+	];
 ?>
 			@include('partials.nav', ['items' => $navbar])
 		</ul>
@@ -28,19 +28,24 @@ $navbar = [
 					<a href="#">Hi {{ Auth::user()->name }} <span class="caret"></span></a>
 					<ul class="dropdown">
 						<li><a href="{{ route('user.show', ['user' => Auth::user()->username]) }}">Profile</a></li>
-						<li><a href="#" data-persona="logout"><span>Logout</span></a></li>
+						{{-- <li><a href="#" data-persona="logout"><span>Logout</span></a></li> --}}
+						<li><a href="{{ route('auth.logout') }}"><span>Logout</span></a></li>
 					</ul>
 				</li>
 			@elseif(Session::has('register_email'))
-				<li{{ Route::currentRouteName() == 'auth.register.form' ? ' class="active"' : '' }}>
+				<li{{ Route::currentRouteName() == 'auth.register.form.form' ? ' class="active"' : '' }}>
 					<a href="{{ route('auth.register.form') }}"><span>Finish Sign Up</span></a>
 				</li>
 				<li>
 					<a href="#" data-persona="logout">Cancel</a>
 				</li>
 			@else
-				<li class="has-form">
-					<button class="persona-button dark" data-persona="login"><span>{{ trans('navigation.login') }}</span></button>
+				<li {{ Route::currentRouteName() == 'auth.login.page' ? ' class="active"' : '' }}>
+					<a class="" href="{{ route('auth.login.page') }}"><span>{{ trans('navigation.login') }}</span></a>
+				</li>
+				<li {{ Route::currentRouteName() == 'auth.register.form' ? ' class="active"' : '' }}>
+					{{-- <button class="persona-button dark" data-persona="login"><span>{{ trans('navigation.login') }}</span></button> --}}
+					<a class="" href="{{ route('auth.register.form') }}"><span>{{ trans('navigation.register') }}</span></a>
 				</li>
 			@endif
 		</ul>

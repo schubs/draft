@@ -7,7 +7,53 @@ class AuthController extends PageController {
 	 */
 	public function loginPage() {
 		$this->layout->title = 'Login';
-		$this->layout->content = View::make('login');
+
+		$validation_rules = [
+			'email'    => ['required', 'min:2', 'email'],
+			'password' => ['max:64'],
+		];
+
+		$this->layout->content = View::make('login', [ 'validation_rules' => $validation_rules ]);
+	}
+
+	/**
+	 * Login with only Laravel
+	 * 
+	 * @return Response 
+	 */
+	public function login()
+	{
+		$email = Input::get('email');
+		$password = Input::get('password');
+
+		// Log in to laravel
+		// get the user
+		$user = User::where('email', $email)->first();
+
+		if ( $user AND Hash::check( $password, $user->password ) ) {
+			// log the user in
+			Auth::login( $user );
+
+			if (Request::ajax()) {
+				if(Session::has('url.intended')) {
+					return Response::json(['redirect' => Session::get('url.intended')]);
+				} else {
+					return Response::json(['refresh' => true]);
+				}
+			} else {
+				return Redirect::intended();
+			}
+		} else {
+			// Not an user
+			// Session::put('register_email', $email);
+
+			Notification::success("Login failed");
+			if (Request::ajax()) {
+				return Response::json(['redirect' => route('auth.login')]);
+			} else {
+				return Redirect::route('auth.login');
+			}
+		}
 	}
 
 	/**
@@ -15,7 +61,7 @@ class AuthController extends PageController {
 	 *
 	 * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
 	 */
-	public function login() {
+	public function loginOld() {
 		/* Force logout */
 		if (! Auth::guest()) {
 			Auth::logout();
@@ -82,6 +128,11 @@ class AuthController extends PageController {
 			Session::forget("register_email");
 		}
 
+		if ( Auth::check() ) {
+			$user = Auth::user();
+			Notification::success("Bye {$user->displayname}!");
+		}
+
 		Auth::logout();
 
 		if (Request::ajax()) {
@@ -97,7 +148,9 @@ class AuthController extends PageController {
 	 */
 	public $register_valid_rules = [
 		'username'    => ['required', 'unique:users', 'min:2', 'max:16'],
-		'displayname' => ['max:64'],
+		'email'    => ['required', 'unique:users', 'email'],
+		'password'    => ['required', 'min:4'],
+		'displayname' => ['required', 'max:64'],
 	];
 
 	/**
@@ -106,9 +159,9 @@ class AuthController extends PageController {
 	 * @return \Illuminate\Http\RedirectResponse|\Illuminate\View\View
 	 */
 	public function registerForm() {
-		if (! Session::has('register_email')) {
-			return Redirect::home();
-		}
+		// if (! Session::has('register_email')) {
+		// 	return Redirect::home();
+		// }
 
 		$this->layout->content = View::make("register", [
 			'validation_rules' => $this->register_valid_rules,
@@ -124,9 +177,9 @@ class AuthController extends PageController {
 	 * @return $this|\Illuminate\Http\RedirectResponse
 	 */
 	public function register() {
-		if (! Session::has('register_email')) {
-			return Redirect::home();
-		}
+		// if (! Session::has('register_email')) {
+		// 	return Redirect::home();
+		// }
 
 		// Validate
 		$validator = Validator::make(Input::all(), $this->register_valid_rules);
@@ -140,14 +193,16 @@ class AuthController extends PageController {
 		$user = new User();
 		$user->username = Input::get('username');
 		$user->displayname = Input::get('displayname');
-		$user->email = Session::get('register_email');
+		$user->email = Input::get('email');
+		$user->password = Hash::make( Input::get('password') );
 
 		// Save & Login
 		if ($user->save()) {
 			Auth::login($user, true);
-			Session::forget('register_email');
 
-			Notification::success("Welcome {$user->name}!");
+			// Session::forget('register_email');
+
+			Notification::success("Welcome {$user->displayname}!");
 
 			return Redirect::intended('/');
 		} else {

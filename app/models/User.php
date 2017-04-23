@@ -45,6 +45,13 @@ class User extends Eloquent implements UserInterface, RemindableInterface {
 	protected $hidden = ['password', 'remember_token'];
 
 	/**
+	 * The attributes that cannot be mass assigned
+	 * 
+	 * @var array
+	 */
+	protected $guarded = [ 'id', 'created_at', 'updated_at' ];
+
+	/**
 	 * Get auth password
 	 *
 	 * Overwritten for mozilla persona usage.

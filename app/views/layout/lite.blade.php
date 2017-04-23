@@ -20,7 +20,8 @@
 	<script src="{{ asset('js/vendor/jquery.min.js') }}"></script>
 	<script src="{{ asset('js/vendor/foundation.min.js') }}"></script>
 	<script src="{{ asset("js/vendor/fastclick.js") }}"></script>
-	<script src="https://login.persona.org/include.js"></script>
+	{{-- <script src="https://login.persona.org/include.js"></script> --}}
+	<script src="{{ asset('js/persona.js') }}"></script>
 
 	<script src="{{ asset("js/main.js") }}"></script>
 	@if(App::environment() == 'production')
